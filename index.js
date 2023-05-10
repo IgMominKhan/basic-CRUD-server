@@ -12,7 +12,7 @@ app.use(cors());
 app.use(express.json());
 
 const uri =
-  "mongodb+srv://igMominKhan:t3YwAweoiTCR90G5@cluster0.xfw1t3g.mongodb.net/?retryWrites=true&w=majority";
+  "mongodb+srv://<usesrname>:<password>@cluster0.xfw1t3g.mongodb.net/?retryWrites=true&w=majority";
 // create mongo client
 const client = new MongoClient(uri, {
   serverApi: {
@@ -41,9 +41,19 @@ const client = new MongoClient(uri, {
 
     app.get("/users", async (req, res) => {
       const cursor = userCollection.find();
-      const userResult = await cursor.toArray();
-      console.log(userResult);
+      const userResult = await cursor.toArray(); //  console.log(userResult);
       res.send(userResult);
+    });
+
+    // handle post request on users route
+    app.post("/users", async (req, res) => {
+      const data = req.body; // console.log(data);
+
+      // add users info to Db
+      const result = await userCollection.insertOne(data);
+
+      // send responce message to client
+      res.send(result);
     });
 
     // send single user
@@ -55,16 +65,22 @@ const client = new MongoClient(uri, {
       res.send(result);
     });
 
-    // handle post request on users route
-    app.post("/users", async (req, res) => {
+    // update user
+    app.put("/user/:id", async (req, res) => {
+      const _id = req.params.id;
       const data = req.body;
+      const { name, email } = req.body;
+      console.log(_id, data);
 
-      console.log(data);
+      const query = { _id: new ObjectId(_id) };
 
-      // add users info to Db
-      const result = await userCollection.insertOne(data);
+      const result = await userCollection.updateOne(query, {
+        $set: {
+          name: name,
+          email: email,
+        },
+      });
 
-      // send responce message to client
       res.send(result);
     });
 
